@@ -26,7 +26,12 @@ class ModifyData():
         elif file_type == DAILY_REPORT_US:
             Load_Daily_Report_US_Data(file_path)
 
-#testing purpose
-#once all upload/update method is finalize this can be deleted
-def Load_Time_Series_Global_Recovered_Data(fp):
-    print("passed", fp)
+
+def query_by_combined_key(self,start_date, end_date, combine_key):
+		combine_keys = combine_key.split(',')
+		if len(combine_keys) == 2:
+			query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
+		elif len(combine_keys) == 3:
+			query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
+		else:
+			print('invalid combined key')
