@@ -175,6 +175,14 @@ class COVID_Database:
         ).all()
         return (result)
 
+    def query_by_combined_key(self,start_date, end_date, combine_key):
+        combine_keys = combine_key.split(',')
+        if len(combine_keys) == 2:
+            self.query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
+        elif len(combine_keys) == 3:
+            self.query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
+        else:
+            print('invalid combined key')
     #  this function loads data from time_series_covid19_confirmed_US.csv file 
     def Load_Time_Series_US_Confirmed_Data(self, file_name):
         session = self.session
@@ -443,7 +451,7 @@ class COVID_Database:
         session.commit()
 
 
-
+    
 
 
 
