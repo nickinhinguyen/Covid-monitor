@@ -10,8 +10,6 @@ import csv
 
 
 
-
-
 # Global variables for database connections
 DB_NAME = "hoyhezpp"
 DB_PASSWORD = "SEusEXGHqz4qEzcPbbDnmQw98C9GTuHk"
@@ -20,13 +18,17 @@ DB_HOST = "hansken.db.elephantsql.com"
 DB_PORT = "5432"
 DB_URL = "postgres://hoyhezpp:SEusEXGHqz4qEzcPbbDnmQw98C9GTuHk@hansken.db.elephantsql.com:5432/hoyhezpp"
 LOCALHOST_URL = "postgres://postgres:postgres@localhost:5432/postgres"
+# change to DB_URL for production
+URL_in_use = LOCALHOST_URL
 
 
 class COVID_Database:
     
-    Base = declarative_base()
+    __Base = declarative_base()
 
-    class covid_area_data(Base):
+    __instance = None
+
+    class covid_area_data(__Base):
         __tablename__ = 'covid_area_data'
         #tell SQLAlchemy the name of column and its attributes:
         id = Column(Integer, primary_key=True, autoincrement=True)
@@ -35,7 +37,7 @@ class COVID_Database:
         country = Column(String)
     
     # uses float because some csv has number of 10548.0 which is invalid input syntax for type integer
-    class covid_daily_data(Base):
+    class covid_daily_data(__Base):
         __tablename__ = 'covid_daily_data'
         area_id = Column(Integer,ForeignKey('covid_area_data.id'), primary_key=True)
         date = Column(DateTime, primary_key=True, nullable=False)
@@ -45,15 +47,27 @@ class COVID_Database:
         active = Column(Float)
 
     def __init__(self, postgresurl):
-        engine = create_engine(postgresurl, echo=False)
-        self.Base.metadata.create_all(engine)
-        session = sessionmaker()
-        session.configure(bind=engine)
-        self.session = session()
-        self.engine = engine
-    
-    def close_session(self):
+        if self.__instance != None:
+            raise Exception("The DB connection already exist!")
+        else:
+            engine = create_engine(postgresurl, echo=False)
+            self.__Base.metadata.create_all(engine)
+            session = sessionmaker()
+            session.configure(bind=engine)
+            self.session = session()
+            self.engine = engine
+            COVID_Database.__instance = self
+
+    @staticmethod
+    def getInstance():
+        """ Static access method. """
+        if COVID_Database.__instance == None:
+            COVID_Database(URL_in_use)
+        return COVID_Database.__instance 
+
+    def disconnect(self):
         self.session.close()
+        COVID_Database.__instance = None
 
     def rollback_session(self):
         self.session.rollback()
@@ -465,7 +479,7 @@ class COVID_Database:
 
 if __name__ == "__main__":
     try:
-        sqldatabase = COVID_Database(LOCALHOST_URL)
+        sqldatabase = COVID_Database.getInstance()
         # # 6-16 6-18 are global daily report, 6-17 is us daily report
         # sqldatabase.Load_Daily_Report_Global_Data('06-16-2020.csv')
         # sqldatabase.Load_Daily_Report_Global_Data('06-18-2020.csv')
