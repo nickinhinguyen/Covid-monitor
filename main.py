@@ -443,7 +443,14 @@ class COVID_Database:
         session.commit()
 
 
-
+    def query_by_combined_key(self,start_date, end_date, combine_key):
+        combine_keys = combine_key.split(',')
+        if len(combine_keys) == 2:
+            query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
+        elif len(combine_keys) == 3:
+            query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
+        else:
+            print('invalid combined key')
 
 
 
