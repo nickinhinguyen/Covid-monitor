@@ -65,12 +65,33 @@ class COVID_Database:
             COVID_Database(URL_in_use)
         return COVID_Database.__instance 
 
-    def disconnect(self):
+    def disconnect_destroy(self):
         self.session.close()
+        self.engine.dispose()
         COVID_Database.__instance = None
 
     def rollback_session(self):
         self.session.rollback()
+
+    def query_all(self):
+        session = self.session
+        covid_daily_data=self.covid_daily_data
+        covid_area_data=self.covid_area_data
+        result = session.query(
+            covid_daily_data.death,
+            covid_daily_data.confirmed,
+            covid_daily_data.recovered,
+            covid_daily_data.active,
+            covid_daily_data.date,
+            covid_area_data.province,
+            covid_area_data.country,
+            covid_area_data.admin2
+        ).filter(
+            covid_area_data.id == covid_daily_data.area_id
+        ).all()
+        print(result)
+        return (result)
+
 
     def query_by_province(self, datetime_start, datetime_end, province):
         session = self.session
@@ -483,15 +504,15 @@ if __name__ == "__main__":
         # # 6-16 6-18 are global daily report, 6-17 is us daily report
         # sqldatabase.Load_Daily_Report_Global_Data('06-16-2020.csv')
         # sqldatabase.Load_Daily_Report_Global_Data('06-18-2020.csv')
-        time1 = datetime.strptime("06-17-2020", '%m-%d-%Y')
-        time2 = datetime.strptime("12-31-2030", '%m-%d-%Y')
-        sqldatabase.query_by_province(time1, time2, "South Carolina")
+        # time1 = datetime.strptime("06-17-2020", '%m-%d-%Y')
+        # time2 = datetime.strptime("12-31-2030", '%m-%d-%Y')
+        sqldatabase.query_all()
     except exc.SQLAlchemyError as e:
         print("error occurs")
         print(e)
         sqldatabase.rollback_session() #Rollback the changes on error
     finally:
-        sqldatabase.close_session()
+        sqldatabase.disconnect_destroy()
     #     print ("Time elapsed: " + str(time() - t) + " s.")
 
 
