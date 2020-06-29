@@ -1,3 +1,7 @@
+from COVID_Database import COVID_Database
+from Display import *
+
+
 TIME_SERIES_CONFIRM = "-tsc"
 TIME_SERIES_CONFIRM_US = "tscus"
 TIME_SERIES_DEATHS = "-tsd"
@@ -5,33 +9,51 @@ TIME_SERIES_DEATHS_US = "-tsdus"
 TIME_SERIES_RECOVERY = "-tsr"
 DAILY_REPORT = "-dr"
 DAILY_REPORT_US = "-dru"
-FILE_TYPE = [ TIME_SERIES_RECOVERY,TIME_SERIES_CONFIRM, TIME_SERIES_CONFIRM_US, TIME_SERIES_DEATHS,TIME_SERIES_DEATHS_US]
+FILE_TYPE = [ DAILY_REPORT, DAILY_REPORT_US,TIME_SERIES_RECOVERY,TIME_SERIES_CONFIRM, TIME_SERIES_CONFIRM_US, TIME_SERIES_DEATHS,TIME_SERIES_DEATHS_US]
 
+KEY_PROVINCE = '-p'
+KEY_COUNTRY = '-c'
+KEY_COMBINE_KEY = '-comb'
+KEY = [KEY_PROVINCE, KEY_COUNTRY, KEY_COMBINE_KEY]
 
 class ModifyData():
 
     def upload(self,file_type, file_path):
         if file_type == TIME_SERIES_CONFIRM:
-            Load_Time_Series_Global_Confirmed_Data(file_path)
+            COVID_Database.getInstance().Load_Time_Series_Global_Confirmed_Data(file_path)
         elif file_type == TIME_SERIES_CONFIRM_US:
-            Load_Time_Series_US_Confirmed_Data(file_path)
+            COVID_Database.getInstance().Load_Time_Series_US_Confirmed_Data(file_path)
         elif file_type == TIME_SERIES_DEATHS:
-            Load_Time_Series_Global_Deaths_Data(file_path)
+            COVID_Database.getInstance().Load_Time_Series_Global_Deaths_Data(file_path)
         elif file_type == TIME_SERIES_DEATHS_US:
-            Load_Time_Series_US_Deaths_Data(file_path)
+            COVID_Database.getInstance().Load_Time_Series_US_Deaths_Data(file_path)
         elif file_type == TIME_SERIES_RECOVERY:
-            Load_Time_Series_Global_Recovered_Data(file_path)
+            COVID_Database.getInstance().Load_Time_Series_Global_Recovered_Data(file_path)
         elif file_type == DAILY_REPORT:
-            Load_Daily_Report_Global_Data(file_path)
+            COVID_Database.getInstance().Load_Daily_Report_Global_Data(file_path)
         elif file_type == DAILY_REPORT_US:
-            Load_Daily_Report_US_Data(file_path)
+            COVID_Database.getInstance().Load_Daily_Report_US_Data(file_path)
 
+    def query_driver(self, key, len, key_list, start_date, end_date):
 
-def query_by_combined_key(self,start_date, end_date, combine_key):
-		combine_keys = combine_key.split(',')
-		if len(combine_keys) == 2:
-			query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
-		elif len(combine_keys) == 3:
-			query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
-		else:
-			print('invalid combined key')
+        query_function = None
+
+        if key == KEY_PROVINCE:
+            query_function = COVID_Database.getInstance().query_by_province
+        elif key == KEY_COUNTRY:
+            query_function = COVID_Database.getInstance().query_by_country
+        elif key == KEY_COMBINE_KEY:
+                query_function = COVID_Database.getInstance().query_by_combined_key
+        else:
+            print('invalid key')
+            return
+
+        master_list = []
+        for i in range(len):
+            query_result = query_function(start_date, end_date, key_list[i])
+            master_list.append(query_result)
+        print(master_list)
+        
+        
+        Display(master_list)
+

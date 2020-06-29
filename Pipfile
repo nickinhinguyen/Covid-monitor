@@ -10,7 +10,7 @@ psycopg2 = "*"
 psycopg2-binary = "*"
 postgres = "*"
 sqlalchemy = "*"
-dateutil = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.8"

@@ -209,9 +209,10 @@ class COVID_Database:
     def query_by_combined_key(self,start_date, end_date, combine_key):
         combine_keys = combine_key.split(',')
         if len(combine_keys) == 2:
-            self.query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
+            return self.query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
         elif len(combine_keys) == 3:
-            self.query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
+            print(3)
+            return self.query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
         else:
             print('invalid combined key')
     #  this function loads data from time_series_covid19_confirmed_US.csv file 
@@ -490,11 +491,11 @@ if __name__ == "__main__":
     try:
         sqldatabase = COVID_Database.getInstance()
         # # 6-16 6-18 are global daily report, 6-17 is us daily report
-        # sqldatabase.Load_Daily_Report_Global_Data('06-16-2020.csv')
-        # sqldatabase.Load_Daily_Report_Global_Data('06-18-2020.csv')
-        time1 = datetime.strptime("01-17-2020", '%m-%d-%Y')
-        time2 = datetime.strptime("12-31-2030", '%m-%d-%Y')
-        sqldatabase.query_by_province(time1,time2,"Guam")
+        sqldatabase.Load_Daily_Report_Global_Data('06-16-2020.csv')
+        sqldatabase.Load_Daily_Report_Global_Data('06-18-2020.csv')
+        time1 = datetime.strptime("06-16-2020", '%m-%d-%Y')
+        time2 = datetime.strptime("06-20-2020", '%m-%d-%Y')
+        sqldatabase.query_by_combined_key(time1,time2,"Calabria,Italy")
         # sqldatabase.query_all()
         print()
     except exc.SQLAlchemyError as e:
