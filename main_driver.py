@@ -4,7 +4,7 @@ from os import path
 from ModifyData import *
 from COVID_Database import COVID_Database
 from Display import *
-
+import logging
 
 
 
@@ -55,16 +55,16 @@ class COVIDMonitor(cmd.Cmd):
                 if is_csv_file(file_type):
                     if is_valid_file(file_path):
                         ModifyData().upload(file_type, file_path)
-            else:
+            else:              
                 print("invalid number of args")
         except:
-            print('error uploading file')
-
+            print('error occured in upload')
+            
     def do_update(self, line):
         """update a file to database
         update [file_path]
         ----------------------------"""
-        try:
+        try:         
             lines = line.split()
             file_type = lines[0]
             file_path = lines[1]
@@ -105,7 +105,11 @@ class COVIDMonitor(cmd.Cmd):
 
 
 if __name__ == '__main__':
-
+    logging.basicConfig(filename='COVIDMonitor.log', level = logging.DEBUG,format='%(asctime)s %(message)s')
+    logging.info('******************************************************************************************')
+    logging.info('Started')
+    logging.info('******************************************************************************************')
     COVIDMonitor().cmdloop()
+    
 
 

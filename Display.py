@@ -6,10 +6,12 @@ from time import time
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
+import logging
 
 class Display():
 
     def __init__(self, data):
+        logging.info('module:{}, calling:{}, with:{}'.format('Display','__init__',data))
         self.data_list = data
         # atribute used in display_plot
         # list of ordered key in data_list (countries/province/combinedkey)
@@ -19,19 +21,24 @@ class Display():
         # self.display_plot()
 
     def generate_data_key(self):
+        logging.info('module:{}, calling:{}'.format('Display','generate_data_key'))
         for entry in self.data_list:
                 key_name = ' '.join(entry[0][5:])
                 self.data_key.append(key_name)
 
     def get_data_key(self):
+        logging.info('module:{}, calling:{}'.format('Display','get_data_key'))
         if len(self.data_key) == 0:
             self.generate_data_key()
         return self.data_key
 
     def export_JSON(self):
+        logging.info('module:{}, calling:{}'.format('Display','export_JSON'))
         data = {} 
         for entry in self.data_list:
+            logging.info('module:{}, calling:{}, entry:{}'.format('Display','export_JSON',entry))
             for row in entry:
+                logging.info('module:{}, calling:{}, row:{}'.format('Display','export_JSON',row))
                 key_name = ' '.join(row[5:])
                 entry_json = {
                         "date": row[4],
@@ -45,7 +52,9 @@ class Display():
                 else:
                     data[key_name] = [entry_json]
         with open('json_out.txt', 'w') as outfile:
+            logging.info('module:{}, calling:{}, dumping json file'.format('Display','export_JSON'))
             json.dump(data, outfile, default=str)
+            logging.info('module:{}, calling:{}, dumped'.format('Display','export_JSON'))
 
     def display_plot(self):
         # 4 plot, 

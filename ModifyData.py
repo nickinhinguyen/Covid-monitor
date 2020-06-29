@@ -1,5 +1,7 @@
 from COVID_Database import COVID_Database
 from Display import *
+import logging
+
 
 
 TIME_SERIES_CONFIRM = "-tsc"
@@ -19,6 +21,7 @@ KEY = [KEY_PROVINCE, KEY_COUNTRY, KEY_COMBINE_KEY]
 class ModifyData():
 
     def upload(self,file_type, file_path):
+        logging.info('module:{}, calling:{}, with:{},{}'.format('ModifyData','upload',file_type, file_path))
         if file_type == TIME_SERIES_CONFIRM:
             COVID_Database.getInstance().Load_Time_Series_Global_Confirmed_Data(file_path)
         elif file_type == TIME_SERIES_CONFIRM_US:
@@ -35,7 +38,7 @@ class ModifyData():
             COVID_Database.getInstance().Load_Daily_Report_US_Data(file_path)
 
     def query_driver(self, key, len, key_list, start_date, end_date):
-
+        logging.info('module:{}, calling:{}, with:{},{},{},{},{}'.format('ModifyData','query',key, len, key_list, start_date, end_date))
         query_function = None
 
         if key == KEY_PROVINCE:
@@ -45,6 +48,7 @@ class ModifyData():
         elif key == KEY_COMBINE_KEY:
                 query_function = COVID_Database.getInstance().query_by_combined_key
         else:
+            logging.ERROR('ERROR:{},module:{}, calling:{}'.format('invalid key','ModifyData','query'))
             print('invalid key')
             return
 
@@ -52,8 +56,7 @@ class ModifyData():
         for i in range(len):
             query_result = query_function(start_date, end_date, key_list[i])
             master_list.append(query_result)
-        print(master_list)
-        
-        
+        logging.info('DEBUG:master_list{},module:{}, calling:{}'.format(master_list,'ModifyData','query'))
+
         Display(master_list)
 
