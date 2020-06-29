@@ -54,7 +54,7 @@ class ModifyData():
 
         master_list = []
         for i in range(len):
-            query_result = query_function(start_date, end_date, key_list[i])
+            query_result = query_function(start_date, end_date, key_list[i].replace('_',' '))
             master_list.append(query_result)
         logging.info('DEBUG:master_list{},module:{}, calling:{}'.format(master_list,'ModifyData','query'))
 

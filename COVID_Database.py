@@ -4,11 +4,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
-
+import logging
 from time import time
 import csv
+import os
 
-
+#REMOVE WHEN HAND IN
+logging.basicConfig(filename='COVIDMonitor.log', level = logging.DEBUG,format='%(asctime)s %(message)s')
 
 # Global variables for database connections
 DB_NAME = "hoyhezpp"
@@ -29,6 +31,7 @@ class COVID_Database:
     __instance = None
 
     class covid_area_data(__Base):
+        logging.info('module:{}, calling:{}'.format('COVID_Database','covid_area_data'))
         __tablename__ = 'covid_area_data'
         #tell SQLAlchemy the name of column and its attributes:
         id = Column(Integer, primary_key=True, autoincrement=True)
@@ -38,6 +41,7 @@ class COVID_Database:
     
     # uses float because some csv has number of 10548.0 which is invalid input syntax for type integer
     class covid_daily_data(__Base):
+        logging.info('module:{}, calling:{}'.format('COVID_Database','covid_daily_data'))
         __tablename__ = 'covid_daily_data'
         area_id = Column(Integer,ForeignKey('covid_area_data.id'), primary_key=True)
         date = Column(DateTime, primary_key=True, nullable=False)
@@ -47,6 +51,7 @@ class COVID_Database:
         active = Column(Float)
 
     def __init__(self, postgresurl):
+        logging.info('module:{}, calling:{}, with:{}'.format('COVID_Database','__init__',postgresurl))
         if self.__instance != None:
             raise Exception("The DB connection already exist!")
         else:
@@ -66,6 +71,7 @@ class COVID_Database:
         return COVID_Database.__instance 
 
     def disconnect_destroy(self):
+        logging.info('module:{}, calling:{}'.format('COVID_Database','disconnect_destroy'))
         self.session.close()
         self.engine.dispose()
         COVID_Database.__instance = None
@@ -93,6 +99,7 @@ class COVID_Database:
         return (result)
 
     def query_by_province(self, datetime_start, datetime_end, province):
+        logging.info('module:{}, calling:{},with:{},{},{}'.format('COVID_Database','query_by_province',datetime_start, datetime_end, province))
         session = self.session
         covid_daily_data=self.covid_daily_data
         covid_area_data=self.covid_area_data
@@ -116,6 +123,7 @@ class COVID_Database:
         return (result)
 
     def query_by_admin2_province_country(self, datetime_start, datetime_end,admin2, province, country):
+        logging.info('module:{}, calling:{},with:{},{},{},{},{}'.format('COVID_Database','query_by_admin2_province_country',datetime_start, datetime_end,admin2, province, country))
         session = self.session
         covid_daily_data=self.covid_daily_data
         covid_area_data=self.covid_area_data
@@ -142,6 +150,7 @@ class COVID_Database:
     # e.g if canada has data recorded of death/province, there is no entry of death/entire country 
     # it's known that US has above duplicate, will only query the entry for the entire country 
     def query_by_country(self, datetime_start, datetime_end, country):
+        logging.info('module:{}, calling:{},with:{},{},{}'.format('COVID_Database','query_by_country',datetime_start, datetime_end, country))
         session = self.session
         covid_daily_data=self.covid_daily_data
         covid_area_data=self.covid_area_data
@@ -182,6 +191,7 @@ class COVID_Database:
         return (result)
 
     def query_by_province_country(self, datetime_start, datetime_end, province, country):
+        logging.info('module:{}, calling:{},with:{},{},{},{}'.format('COVID_Database','query_by_province_country',datetime_start, datetime_end, province, country))
         session = self.session
         covid_daily_data=self.covid_daily_data
         covid_area_data=self.covid_area_data
@@ -207,12 +217,14 @@ class COVID_Database:
         return (result)
 
     def query_by_combined_key(self,start_date, end_date, combine_key):
+        logging.info('module:{}, calling:{},with:{},{},{}'.format('COVID_Database','query_by_combined_key',datetime_start, datetime_end, combine_key))
         combine_keys = combine_key.split(',')
         if len(combine_keys) == 2:
             return self.query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
         elif len(combine_keys) == 3:
-            print(3)
             return self.query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
+        elif len(combine_keys) == 1:
+            return self.query_by_country(start_date, end_date, combine_key)
         else:
             print('invalid combined key')
     #  this function loads data from time_series_covid19_confirmed_US.csv file 
@@ -400,11 +412,13 @@ class COVID_Database:
         session.commit()
 
     #  this function loads data from csv files in csse_covid_19_daily_reports folder
-    def Load_Daily_Report_Global_Data(self, file_name): 
+    def Load_Daily_Report_Global_Data(self, file_path): 
+        logging.info('module:{}, calling:{},file_path:{}'.format('COVID_Database','Load_Daily_Report_Global_Data',file_path))
         session = self.session
         covid_daily_data=self.covid_daily_data
         covid_area_data=self.covid_area_data 
         # get the correct date
+        file_name = os.path.basename(file_path)
         date = datetime.strptime(file_name[:-4], '%m-%d-%Y')
         print(date)
         with open(file_name) as infile:
@@ -489,10 +503,11 @@ class COVID_Database:
 
 if __name__ == "__main__":
     try:
+        
         sqldatabase = COVID_Database.getInstance()
         # # 6-16 6-18 are global daily report, 6-17 is us daily report
-        sqldatabase.Load_Daily_Report_Global_Data('06-16-2020.csv')
-        sqldatabase.Load_Daily_Report_Global_Data('06-18-2020.csv')
+        sqldatabase.Load_Daily_Report_Global_Data('csv/06-16-2020.csv')
+        sqldatabase.Load_Daily_Report_Global_Data('csv/06-18-2020.csv')
         time1 = datetime.strptime("06-16-2020", '%m-%d-%Y')
         time2 = datetime.strptime("06-20-2020", '%m-%d-%Y')
         sqldatabase.query_by_combined_key(time1,time2,"Calabria,Italy")

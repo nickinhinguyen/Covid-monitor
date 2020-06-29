@@ -80,9 +80,12 @@ class COVIDMonitor(cmd.Cmd):
         query [key] [key_length] [values] [date]
         query [key] [key_length] [values] [start_date] [end_date]
 
+        !NOTICE: enter key value with 2 or more word seperated by "_"
+        ex: 	New_Mexico
+
         example: 
-        * Query by country with 2 countries(Chile, Brazil) on 06-15-2020
-        query -c 2 Chile Vietnam 06-15-2020 
+        * Query by country with 2 countries(Chile, United_Kingdom) on 06-15-2020
+        query -c 2 Chile United_Kingdom 06-15-2020 
 
         * Query by province with 1 province(Ontario) for data from 06-15-2020 to 06-20-2020
         query -p 1 Ontario  06-15-2020 06-20-2020 
