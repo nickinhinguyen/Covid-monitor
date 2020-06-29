@@ -174,7 +174,7 @@ class COVID_Database:
         covid_area_data.id == covid_daily_data.area_id, 
         covid_daily_data.date <= datetime_end,
         covid_daily_data.date >= datetime_start,
-        covid_area_data.country == country,
+        covid_area_data.country == country
         ).group_by(
         covid_area_data.country,
         covid_daily_data.date
