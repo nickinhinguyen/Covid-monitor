@@ -19,7 +19,7 @@ DB_PORT = "5432"
 DB_URL = "postgres://hoyhezpp:SEusEXGHqz4qEzcPbbDnmQw98C9GTuHk@hansken.db.elephantsql.com:5432/hoyhezpp"
 LOCALHOST_URL = "postgres://postgres:postgres@localhost:5432/postgres"
 # change to DB_URL for production
-URL_in_use = LOCALHOST_URL
+URL_in_use = DB_URL
 
 
 class COVID_Database:
@@ -58,9 +58,9 @@ class COVID_Database:
             self.engine = engine
             COVID_Database.__instance = self
 
-    @staticmethod
+    @staticmethod 
+    # this is for the singleton design pattern
     def getInstance():
-        """ Static access method. """
         if COVID_Database.__instance == None:
             COVID_Database(URL_in_use)
         return COVID_Database.__instance 
@@ -92,7 +92,6 @@ class COVID_Database:
         print(result)
         return (result)
 
-
     def query_by_province(self, datetime_start, datetime_end, province):
         session = self.session
         covid_daily_data=self.covid_daily_data
@@ -115,7 +114,6 @@ class COVID_Database:
         ).all()
         print(result)
         return (result)
-
 
     def query_by_admin2_province_country(self, datetime_start, datetime_end,admin2, province, country):
         session = self.session
@@ -140,7 +138,6 @@ class COVID_Database:
         ).all()
         return result
     
-
     # this function will assumes that the entries are not duplicates, 
     # e.g if canada has data recorded of death/province, there is no entry of death/entire country 
     # it's known that US has above duplicate, will only query the entry for the entire country 
@@ -177,7 +174,6 @@ class COVID_Database:
         covid_area_data.id == covid_daily_data.area_id, 
         covid_daily_data.date <= datetime_end,
         covid_daily_data.date >= datetime_start,
-        covid_area_data.province == province,
         covid_area_data.country == country,
         ).group_by(
         covid_area_data.country,
@@ -490,23 +486,17 @@ class COVID_Database:
 
 
 
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     try:
         sqldatabase = COVID_Database.getInstance()
         # # 6-16 6-18 are global daily report, 6-17 is us daily report
         # sqldatabase.Load_Daily_Report_Global_Data('06-16-2020.csv')
         # sqldatabase.Load_Daily_Report_Global_Data('06-18-2020.csv')
-        # time1 = datetime.strptime("06-17-2020", '%m-%d-%Y')
-        # time2 = datetime.strptime("12-31-2030", '%m-%d-%Y')
-        sqldatabase.query_all()
+        time1 = datetime.strptime("01-17-2020", '%m-%d-%Y')
+        time2 = datetime.strptime("12-31-2030", '%m-%d-%Y')
+        sqldatabase.query_by_province(time1,time2,"Guam")
+        # sqldatabase.query_all()
+        print()
     except exc.SQLAlchemyError as e:
         print("error occurs")
         print(e)
