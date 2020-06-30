@@ -23,6 +23,9 @@ LOCALHOST_URL = "postgres://postgres:postgres@localhost:5432/postgres"
 # change to DB_URL for production
 URL_in_use = DB_URL
 
+import warnings
+
+
 
 class COVID_Database:
     
@@ -61,13 +64,18 @@ class COVID_Database:
             session.configure(bind=engine)
             self.session = session()
             self.engine = engine
+            self.url = postgresurl
             COVID_Database.__instance = self
 
     @staticmethod 
     # this is for the singleton design pattern
-    def getInstance():
+    # if connection doesnt exist it will create a new connection using the provided URL default ot be URL in use
+    # if connection already exist, it will return the existing connection instance
+    def getInstance(URL = URL_in_use):
         if COVID_Database.__instance == None:
-            COVID_Database(URL_in_use)
+            COVID_Database(URL)
+        else if (COVID_Database.url != URL):
+            raise Exception("Already connecto to a different db, please disconnect and try again!")
         return COVID_Database.__instance 
 
     def disconnect_destroy(self):
@@ -95,7 +103,6 @@ class COVID_Database:
         ).filter(
             covid_area_data.id == covid_daily_data.area_id
         ).all()
-        print(result)
         return (result)
 
     def query_by_province(self, datetime_start, datetime_end, province):
@@ -220,11 +227,11 @@ class COVID_Database:
         logging.info('module:{}, calling:{},with:{},{},{}'.format('COVID_Database','query_by_combined_key',start_date, end_date, combine_key))
         combine_keys = combine_key.split(',')
         if len(combine_keys) == 2:
-            return self.query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
+            return self.query_by_admin2_province_country(start_date, end_date, None, combine_keys[0], combine_keys[1])
         elif len(combine_keys) == 3:
             return self.query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
         elif len(combine_keys) == 1:
-            return self.query_by_country(start_date, end_date, combine_key)
+            return self.query_by_admin2_province_country(start_date, end_date, None, None, combine_key)
         else:
             print('invalid combined key')
     #  this function loads data from time_series_covid19_confirmed_US.csv file 
@@ -504,10 +511,13 @@ if __name__ == "__main__":
     try:
         
         sqldatabase = COVID_Database.getInstance()
-        time1 = datetime.strptime("06-01-2020", '%m-%d-%Y')
-        time2 = datetime.strptime("06-20-2020", '%m-%d-%Y')
-        sqldatabase.query_by_combined_key(time1,time2,"Calabria,Italy")
-        # sqldatabase.query_all()
+        sqldatabase.Load_Time_Series_Global_Confirmed_Data('../tests/time_series_covid19_confirmed_global.csv')
+        time1 = datetime.strptime("06-17-2020", '%m-%d-%Y')
+        time2 = datetime.strptime("06-17-2020", '%m-%d-%Y')
+        data = sqldatabase.query_all()
+        print(data)
+        # sqldatabase.query_by_combined_key(time1,time2,"Calabria,Italy")
+         # sqldatabase.query_all()
     except exc.SQLAlchemyError as e:
         print("error occurs")
         print(e)
