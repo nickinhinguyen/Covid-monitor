@@ -6,7 +6,10 @@ from COVID_Database import COVID_Database
 from Display import *
 import logging
 from datetime import datetime
-
+import unittest
+# for testing purpose
+import sys
+sys.path.insert(1, '../tests')
 
 JSON = 'json'
 CSV = 'csv'
@@ -15,22 +18,24 @@ DEATHS = 'D'
 RECOVERED = 'R'
 ACTIVE = 'A'
 CONFIRMED = 'C'
-def is_valid_file(file_path):
-    if path.isfile(file_path) and file_path.endswith('.csv'):
-        return file_path
-    elif file_path.endswith('.csv'):
-        print("file does not exist \n")
-    else:
-        print("file must be in .csv type \n")
 
-def is_csv_file(file_type):
-    if file_type in FILE_TYPE:
-        return True
-    else:
-        print("invalid file type")
-        print(" Please enter one of the folowing file type: \n",FILE_TYPE)
-        print("\n")
-        return False
+class CheckValidFile:
+    def is_valid_file(file_path):
+        if path.isfile(file_path) and file_path.endswith('.csv'):
+            return file_path
+        elif file_path.endswith('.csv'):
+            print("file does not exist \n")
+        else:
+            print("file must be in .csv type \n")
+
+    def is_csv_file(file_type):
+        if file_type in FILE_TYPE:
+            return True
+        else:
+            print("invalid file type")
+            print(" Please enter one of the folowing file type: \n",FILE_TYPE)
+            print("\n")
+            return False
 
 
 class COVIDMonitor(cmd.Cmd):
@@ -59,8 +64,8 @@ class COVIDMonitor(cmd.Cmd):
             if len(lines) == 2:
                 file_type = lines[0]
                 file_path = lines[1]
-                if is_csv_file(file_type):
-                    if is_valid_file(file_path):
+                if CheckValidFile.is_csv_file(file_type):
+                    if CheckValidFile.is_valid_file(file_path):
                         ModifyData().upload(file_type, file_path)
             else:              
                 print("invalid number of args")
@@ -75,11 +80,12 @@ class COVIDMonitor(cmd.Cmd):
             lines = line.split()
             file_type = lines[0]
             file_path = lines[1]
-            if is_csv_file(file_type):
-                if is_valid_file(file_path):
+            if CheckValidFile.is_csv_file(file_type):
+                if CheckValidFile.is_valid_file(file_path):
                     #need to check logic if upgrage is the same as upload
                     ModifyData().upload(file_type, file_path)
-        except:
+        except Exception as e:
+            logging.error('ERROR: Failed to upload to ftp: '+ str(e))
             print('error occured in update')
     def do_query(self,line):
         """Query to see the number of Confirmed, Active, Recovery, Deaths of 1 or more of countries/provinces/combine_key
@@ -97,32 +103,22 @@ class COVIDMonitor(cmd.Cmd):
         * Query by province with 1 province(Ontario) for data from 06-15-2020 to 06-20-2020
         query -p 1 Ontario  06-15-2020 06-20-2020 
         ----------------------------"""
-        # try:
-        #     lines = line.split()
-        #     query_key = lines[0]
-        #     key_length = int(lines[1])
-        #     key_list = lines[2:2+key_length]
-        #     # missing checking valid dates
-        #     start_date = (lines[2+key_length])
-        #     datetime.strptime( start_date, "%m-%d-%Y" )
-        #     end_date = (lines[-1])
-        #     datetime.strptime( end_date, "%m-%d-%Y" )
-        #     ModifyData().query_driver(query_key,key_length,key_list,start_date,end_date)
-        # except ValueError:
-        #     print('Invalid date!')
-        # except:
-        #     print("invalid query request")
+        try:
+            lines = line.split()
+            query_key = lines[0]
+            key_length = int(lines[1])
+            key_list = lines[2:2+key_length]
+            # missing checking valid dates
+            start_date = (lines[2+key_length])
+            datetime.strptime( start_date, "%m-%d-%Y" )
+            end_date = (lines[-1])
+            datetime.strptime( end_date, "%m-%d-%Y" )
+            ModifyData().query_driver(query_key,key_length,key_list,start_date,end_date)
+        except ValueError:
+            print('Invalid date!')
+        except:
+            print("invalid query request")
 
-        lines = line.split()
-        query_key = lines[0]
-        key_length = int(lines[1])
-        key_list = lines[2:2+key_length]
-        # missing checking valid dates
-        start_date = (lines[2+key_length])
-        datetime.strptime( start_date, "%m-%d-%Y" )
-        end_date = (lines[-1])
-        datetime.strptime( end_date, "%m-%d-%Y" )
-        ModifyData().query_driver(query_key,key_length,key_list,start_date,end_date)
 
     def do_export(self, line):
         """export queried data
