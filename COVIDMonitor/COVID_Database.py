@@ -10,7 +10,7 @@ import csv
 import os
 
 #REMOVE WHEN HAND IN
-logging.basicConfig(filename='COVIDMonitor.log', level = logging.DEBUG,format='%(asctime)s %(message)s')
+logging.basicConfig(filename='log/COVIDMonitor.log', level = logging.DEBUG,format='%(asctime)s %(message)s')
 
 # Global variables for database connections
 DB_NAME = "hoyhezpp"
@@ -231,9 +231,9 @@ class COVID_Database:
         if len(combine_keys) == 2:
             return self.query_by_admin2_province_country(start_date, end_date, None, combine_keys[0], combine_keys[1])
         elif len(combine_keys) == 3:
-            return self.query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_key[2])
+            return self.query_by_admin2_province_country(start_date, end_date,combine_keys[0], combine_keys[1],combine_keys[2])
         elif len(combine_keys) == 1:
-            return self.query_by_admin2_province_country(start_date, end_date, None, None, combine_key)
+            return self.query_by_admin2_province_country(start_date, end_date, None, None, combine_keys)
         else:
             print('invalid combined key')
     #  this function loads data from time_series_covid19_confirmed_US.csv file 
