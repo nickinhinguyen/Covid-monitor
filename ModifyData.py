@@ -59,4 +59,5 @@ class ModifyData():
         logging.info('DEBUG:master_list{},module:{}, calling:{}'.format(master_list,'ModifyData','query'))
 
         Display(master_list)
+        Display.getInstance().display_on_screen()
 

@@ -10,15 +10,47 @@ import logging
 
 class Display():
 
+    __instance = None
+
     def __init__(self, data):
         logging.info('module:{}, calling:{}, with:{}'.format('Display','__init__',data))
         self.data_list = data
+        Display.__instance = self
         # atribute used in display_plot
         # list of ordered key in data_list (countries/province/combinedkey)
+        self.is_master_list_generated = False
         self.data_key = []
+        self.deaths_master = []
+        self.confirmed_master = []
+        self.recovered_master = []
+        self.active_master = []
+        self.dates = []
         # self.export_JSON()
         # self.export_CSV()
         # self.display_plot()
+
+    def display_on_screen(self):
+        if not self.is_master_list_generated:
+            self.generate_master_list()
+        
+        data_key = self.get_data_key()
+        print("DATA DATES:", self.dates)
+        for i in range(len(self.data_key)):
+            print('   '+data_key[i] + ':')
+            print("Deaths:", self.deaths_master[i])
+            print("Confirms:", self.confirmed_master[i])
+            print("Active:", self.active_master[i])
+            print("Recovered:", self.recovered_master[i])
+            print('\n')
+            
+
+    
+    # this is for the singleton design pattern
+    def getInstance():
+        if Display.__instance != None:
+            return Display.__instance 
+        else:
+            print('no data has been query')
 
     def generate_data_key(self):
         logging.info('module:{}, calling:{}'.format('Display','generate_data_key'))
@@ -56,64 +88,74 @@ class Display():
             json.dump(data, outfile, default=str)
             logging.info('module:{}, calling:{}, dumped'.format('Display','export_JSON'))
 
-    def display_plot(self):
+    def generate_master_list(self):
         # 4 plot, 
         # x-axis (number of cases)
-        deaths_master = []
-        confirmed_master = []
-        recovered_master = []
-        active_master = []
-
-        # loop for y-axis (date)
-        xx = []
+        
 
 
         for entry in self.data_list:
-            print(entry)
             d = []
             c = []
             r = []
             a = []
 
             for row in entry:
-                print('row:', row)
                 d.append(row[0])
                 c.append(row[1])
                 r.append(row[2])
                 a.append(row[3])
 
                 #append date
-                if len(xx) < len(entry):
-                    xx.append(datetime.datetime.date(row[4]))
-                    print(xx)
-            deaths_master.append(d)
-            confirmed_master.append(c)
-            recovered_master.append(r)
-            active_master.append(a)
+                if len(self.dates) < len(entry):
+                    self.dates.append(datetime.datetime.date(row[4]))
+            self.deaths_master.append(d)
+            self.confirmed_master.append(c)
+            self.recovered_master.append(r)
+            self.active_master.append(a)
 
+    def plot(self,name):
 
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2)
-        # fig, dp = plt.subplots()  # a figure with a single Axes
-        plt.xticks(np.arange(xx[0], xx[-1]+datetime.timedelta(days=1)))
+        
+
+        if not self.is_master_list_generated:
+            self.generate_master_list()
+
+        if name == 'D':
+            master_list = self.deaths_master
+            name = 'Death'
+        if name == 'R':
+            master_list = self.recovered_master
+            name = 'Recovered'
+        if name == 'A':
+            master_list = self.active_master
+            name = 'Active'
+        if name == 'C':
+            master_list = self.confirmed_master
+            name = 'Confirmed'
+
+        fig, plot = plt.subplots()
+        plt.xticks(np.arange(self.dates[0], self.dates[-1]+datetime.timedelta(days=1)))
         plt.gcf().autofmt_xdate()
-
-        self.plot_helper(ax1,deaths_master,xx)
-        self.plot_helper(ax2,confirmed_master,xx)
-        self.plot_helper(ax3,recovered_master,xx)
-        self.plot_helper(ax4,active_master,xx)
-
-        plt.show()
-
-
-    def plot_helper(self, plot, master_list,xx):
+        data_key = self.get_data_key()
+        
+   
         i = 0
-        #create deaths plot
-        while i < len(self.data_key):
-            print(xx)
-            plot.scatter(xx, master_list[i], label = self.data_key[i])
+        
+        while i < len(data_key):
+            plot.scatter(self.dates, master_list[i], label = data_key[i])
+            for x,y in zip(self.dates, master_list[i]):
+
+                label = "{:.2f}".format(y)
+
+                # this method is called for each point
+                plt.annotate(label, # this is the text
+                            (x,y), # this is the point to label
+                            textcoords="offset points", # how to position the text
+                            xytext=(0,10), # distance from text to points (x,y)
+                            ha='right') # horizontal alignment can be left, right or center
             i += 1
-        # dp.scatter( xx, deaths_master[0], label = data_key[0])
-        # dp.scatter( xx, deaths_master[1], label = data_key[1])
+        
         
         
         myFmt = mdates.DateFormatter('%Y-%m-%d')
@@ -121,9 +163,11 @@ class Display():
 
         plot.set_ylabel('number of cases')  # Add an x-label to the axes.
         plot.set_xlabel('date')  # Add a y-label to the axes.
-        plot.set_title("DEATHS ")  # Add a title to the axes.
+        plot.set_title(name)  # Add a title to the axes.
         plot.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
         plot.legend()  # Add a legend.
+
+        plt.show()
         
                         
 
@@ -135,19 +179,21 @@ class Display():
 
 
 
-    # def export_CSV(self):
-    #     myFile = open('CSV_out.csv', 'w')
-    #     with myFile:python -m pip install -U pip
-    #         writer = csv.writer(myFile)
-    #         for key in self.data_list:
-    #             writer.writerows(self.data_list)
+    def export_CSV(self):
+        with open('csv_out.csv','w') as out:
+            csv_out=csv.writer(out)
+            csv_out.writerow(['deaths','confirmed','recovered','active','date','name'])
+            for entry in self.data_list:
+                for row in entry:
+                    csv_out.writerow(row)
 
 if __name__ == '__main__':
-    D = Display()
-    D.generate_data_key()
+    data = [[(621.0, 21533.0, 0.0, 212.0, datetime.datetime(2020, 6, 18, 0, 0), 'South Carolina')],[(6211.0, 21533.0, 0.0, 2912.0, datetime.datetime(2020, 6, 18, 0, 0), 'China')],[(61.0, 21533.0, 0.0, 20912.0, datetime.datetime(2020, 6, 18, 0, 0), 'Vietnam')]]
+    D = Display(data)
+    D.export_JSON()
+    D.plot('A')
 
 
 
 
 
-#[(621.0, 21533.0, 0.0, 20912.0, datetime.datetime(2020, 6, 18, 0, 0), 'South Carolina')]

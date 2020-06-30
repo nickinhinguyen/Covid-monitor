@@ -5,9 +5,16 @@ from ModifyData import *
 from COVID_Database import COVID_Database
 from Display import *
 import logging
+from datetime import datetime
 
 
-
+JSON = 'json'
+CSV = 'csv'
+PLOT = 'plot'
+DEATHS = 'D'
+RECOVERED = 'R'
+ACTIVE = 'A'
+CONFIRMED = 'C'
 def is_valid_file(file_path):
     if path.isfile(file_path) and file_path.endswith('.csv'):
         return file_path
@@ -80,7 +87,7 @@ class COVIDMonitor(cmd.Cmd):
         query [key] [key_length] [values] [date]
         query [key] [key_length] [values] [start_date] [end_date]
 
-        !NOTICE: enter key value with 2 or more word seperated by "_"
+        !note: enter key value with 2 or more words seperated by "_"
         ex: 	New_Mexico
 
         example: 
@@ -90,17 +97,71 @@ class COVIDMonitor(cmd.Cmd):
         * Query by province with 1 province(Ontario) for data from 06-15-2020 to 06-20-2020
         query -p 1 Ontario  06-15-2020 06-20-2020 
         ----------------------------"""
-        try:
-            lines = line.split()
-            query_key = lines[0]
-            key_length = int(lines[1])
-            key_list = lines[2:2+key_length]
-            # missing checking valid dates
-            start_date = (lines[2+key_length])
-            end_date = (lines[-1])
-            ModifyData().query_driver(query_key,key_length,key_list,start_date,end_date)
-        except:
-            print("invalid query request")
+        # try:
+        #     lines = line.split()
+        #     query_key = lines[0]
+        #     key_length = int(lines[1])
+        #     key_list = lines[2:2+key_length]
+        #     # missing checking valid dates
+        #     start_date = (lines[2+key_length])
+        #     datetime.strptime( start_date, "%m-%d-%Y" )
+        #     end_date = (lines[-1])
+        #     datetime.strptime( end_date, "%m-%d-%Y" )
+        #     ModifyData().query_driver(query_key,key_length,key_list,start_date,end_date)
+        # except ValueError:
+        #     print('Invalid date!')
+        # except:
+        #     print("invalid query request")
+
+        lines = line.split()
+        query_key = lines[0]
+        key_length = int(lines[1])
+        key_list = lines[2:2+key_length]
+        # missing checking valid dates
+        start_date = (lines[2+key_length])
+        datetime.strptime( start_date, "%m-%d-%Y" )
+        end_date = (lines[-1])
+        datetime.strptime( end_date, "%m-%d-%Y" )
+        ModifyData().query_driver(query_key,key_length,key_list,start_date,end_date)
+
+    def do_export(self, line):
+        """export queried data
+        
+        To export data to json file:
+        enter input: export json
+        
+        To export data to csv file:
+        enter input: export csv
+        
+        To see the graph 
+        enter input: export plot D     !-- for deaths records
+                     export plot A     !-- for actives records
+                     export plot C     !-- for confirms records
+                     export plot R     !-- for recovered records"""
+
+        # try:
+        line = line.split()
+        display = Display.getInstance()
+        if display != None:
+            if line[0] == JSON:
+                display.export_JSON()
+            elif line[0] == CSV:
+                display.export_CSV()
+            elif line[0] == PLOT:
+                if line[1] == DEATHS:
+                    display.plot(DEATHS)
+                if line[1] == RECOVERED:
+                    display.plot(RECOVERED)
+                if line[1] == ACTIVE:
+                    display.plot(ACTIVE)
+                if line[1] == CONFIRMED:
+                    display.plot(CONFIRMED)
+            else:
+                print("invalid request")
+        # except:
+        #     print('error occured while export')
+
+
 
     def do_EOF(self, line):
         return True
