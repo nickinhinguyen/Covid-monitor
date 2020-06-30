@@ -217,7 +217,7 @@ class COVID_Database:
         return (result)
 
     def query_by_combined_key(self,start_date, end_date, combine_key):
-        logging.info('module:{}, calling:{},with:{},{},{}'.format('COVID_Database','query_by_combined_key',datetime_start, datetime_end, combine_key))
+        logging.info('module:{}, calling:{},with:{},{},{}'.format('COVID_Database','query_by_combined_key',start_date, end_date, combine_key))
         combine_keys = combine_key.split(',')
         if len(combine_keys) == 2:
             return self.query_by_province_country(start_date, end_date,combine_keys[0], combine_keys[1])
@@ -420,8 +420,7 @@ class COVID_Database:
         # get the correct date
         file_name = os.path.basename(file_path)
         date = datetime.strptime(file_name[:-4], '%m-%d-%Y')
-        print(date)
-        with open(file_name) as infile:
+        with open(file_path) as infile:
             reader = csv.reader(infile)
             headers = next(reader)  # Read first line for headers
                     # Add our desired other columns
@@ -505,14 +504,10 @@ if __name__ == "__main__":
     try:
         
         sqldatabase = COVID_Database.getInstance()
-        # # 6-16 6-18 are global daily report, 6-17 is us daily report
-        sqldatabase.Load_Daily_Report_Global_Data('csv/06-16-2020.csv')
-        sqldatabase.Load_Daily_Report_Global_Data('csv/06-18-2020.csv')
-        time1 = datetime.strptime("06-16-2020", '%m-%d-%Y')
+        time1 = datetime.strptime("06-01-2020", '%m-%d-%Y')
         time2 = datetime.strptime("06-20-2020", '%m-%d-%Y')
         sqldatabase.query_by_combined_key(time1,time2,"Calabria,Italy")
         # sqldatabase.query_all()
-        print()
     except exc.SQLAlchemyError as e:
         print("error occurs")
         print(e)
