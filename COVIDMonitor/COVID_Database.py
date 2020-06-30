@@ -32,6 +32,7 @@ class COVID_Database:
     __Base = declarative_base()
 
     __instance = None
+    __url = None
 
     class covid_area_data(__Base):
         logging.info('module:{}, calling:{}'.format('COVID_Database','covid_area_data'))
@@ -64,7 +65,7 @@ class COVID_Database:
             session.configure(bind=engine)
             self.session = session()
             self.engine = engine
-            self.url = postgresurl
+            COVID_Database.__url = postgresurl
             COVID_Database.__instance = self
 
     @staticmethod 
@@ -74,7 +75,7 @@ class COVID_Database:
     def getInstance(URL = URL_in_use):
         if COVID_Database.__instance == None:
             COVID_Database(URL)
-        else if (COVID_Database.url != URL):
+        elif COVID_Database.__url != URL:
             raise Exception("Already connecto to a different db, please disconnect and try again!")
         return COVID_Database.__instance 
 
@@ -83,6 +84,7 @@ class COVID_Database:
         self.session.close()
         self.engine.dispose()
         COVID_Database.__instance = None
+        COVID_Database.__url = None
 
     def rollback_session(self):
         self.session.rollback()
